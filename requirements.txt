@@ -1,0 +1,4 @@
+PyMuPDF>=1.26
+PySide6-Essentials>=6.7
+pdf2docx>=0.5.8,<0.6
+openpyxl>=3.1
