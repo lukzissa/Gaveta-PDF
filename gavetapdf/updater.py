@@ -181,8 +181,12 @@ Remove-Item -LiteralPath {_ps(folder)} -Recurse -Force
 
 def launch(script: str) -> None:
     """Roda o script escondido e independente do programa (que deve fechar em seguida)."""
-    flags = 0x08000000 | 0x00000008 | 0x00000200  # sem janela, desanexado, novo grupo de processos
-    subprocess.Popen(
-        ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", script],
-        creationflags=flags, close_fds=True,
-    )
+    # Console oculto (CREATE_NO_WINDOW) em vez de DETACHED_PROCESS: sem console o
+    # PowerShell nem inicia. Novo grupo de processos e, se o Windows permitir, fora do
+    # "job" do programa, para o script continuar vivo depois que ele fechar.
+    no_window, new_group, breakaway = 0x08000000, 0x00000200, 0x01000000
+    command = ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", script]
+    try:
+        subprocess.Popen(command, creationflags=no_window | new_group | breakaway, close_fds=True)
+    except OSError:  # job que não permite sair: roda dentro dele mesmo
+        subprocess.Popen(command, creationflags=no_window | new_group, close_fds=True)
