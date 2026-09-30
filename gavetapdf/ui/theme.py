@@ -36,14 +36,14 @@ LIGHT = {
     "tooltip_text": "#FFFFFF",
 }
 
-# Modo escuro, com laranja como destaque.
+# Modo escuro, com o mesmo vermelho do tema claro como destaque.
 DARK = {
-    "accent": "#D97757",
-    "accent_hover": "#E08A6D",
-    "accent_soft": "#33241E",
-    "accent_strong": "#4A2E23",
+    "accent": "#D6423A",
+    "accent_hover": "#E0564E",
+    "accent_soft": "#3A1F1D",
+    "accent_strong": "#52302C",
     "on_accent": "#FFFFFF",
-    "primary_disabled": "#5C3A2E",
+    "primary_disabled": "#5A2A27",
     "text": "#F0EFEC",
     "muted": "#9C9A92",
     "disabled": "#5F5E5A",
@@ -82,7 +82,8 @@ QDialog, QMessageBox {{ background: {c['bg']}; }}
 #sidebar::item:hover {{ background: {c['pressed']}; }}
 #sidebar::item:selected {{ background: {c['accent_soft']}; color: {c['accent']}; font-weight: 600; }}
 #sidebarPanel {{ background: {c['sidebar']}; border-right: 1px solid {c['border']}; }}
-#brand {{ font-size: 15pt; font-weight: 700; padding: 18px 20px 4px 20px; background: {c['sidebar']}; }}
+#brandRow {{ background: {c['sidebar']}; }}
+#brand {{ font-size: 15pt; font-weight: 700; background: transparent; }}
 #brandSub {{ color: {c['muted']}; font-size: 9pt; padding: 0 20px 12px 20px; background: {c['sidebar']}; }}
 #sidebarFooter {{ background: {c['sidebar']}; }}
 

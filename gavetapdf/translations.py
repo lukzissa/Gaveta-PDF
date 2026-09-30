@@ -18,10 +18,10 @@ TRANSLATIONS: dict[str, tuple[str, str, str]] = {
         "Opens the PayPal donation page in your browser",
         "Abre la página de donación de PayPal en el navegador",
         "Открывает страницу пожертвования PayPal в браузере"),
-    "Pronto. Seus arquivos nunca saem do seu computador.": (
-        "Ready. Your files never leave your computer.",
-        "Listo. Tus archivos nunca salen de tu computadora.",
-        "Готово. Ваши файлы никогда не покидают компьютер."),
+    "{0} funciona 100% offline. Nenhum arquivo é enviado para a internet.": (
+        "{0} works 100% offline. No file is ever sent to the internet.",
+        "{0} funciona 100% sin conexión. Ningún archivo se envía a internet.",
+        "{0} работает полностью офлайн. Ни один файл не отправляется в интернет."),
     "Cancelar": ("Cancel", "Cancelar", "Отмена"),
     "Abrir arquivo": ("Open file", "Abrir archivo", "Открыть файл"),
     "Abrir pasta": ("Open folder", "Abrir carpeta", "Открыть папку"),
