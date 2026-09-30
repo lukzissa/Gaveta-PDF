@@ -83,6 +83,21 @@ def parse_release(data: dict) -> Release | None:
     )
 
 
+def plain_notes(text: str) -> str:
+    """Descrição da release como texto simples para a janela de atualização.
+
+    No GitHub a descrição aceita HTML e Markdown (imagens, links, negrito, títulos),
+    que na janela apareceriam escritos por extenso.
+    """
+    text = re.sub(r"<[^>]+>", "", text)  # tags HTML (ex.: <img ...>)
+    text = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", text)  # imagens em Markdown
+    text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)  # links: fica só o texto
+    text = re.sub(r"(\*\*|__|`)", "", text)  # negrito e código
+    text = re.sub(r"^\s{0,3}#{1,6}\s*", "", text, flags=re.M)  # títulos
+    text = re.sub(r"\n{3,}", "\n\n", text.replace("\r\n", "\n"))
+    return text.strip()
+
+
 def latest_release() -> Release | None:
     """Última release publicada, ou None se não houver ou sem internet."""
     try:

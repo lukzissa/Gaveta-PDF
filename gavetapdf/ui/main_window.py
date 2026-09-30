@@ -372,7 +372,8 @@ class MainWindow(QMainWindow):
         box.setIconPixmap(theme.app_pixmap(56))
         box.setText(tr("<b>O {0} {1} está disponível.</b><br>Você está usando a versão {2}.",
                        APP_NAME, release.version, __version__))
-        notes = release.notes if len(release.notes) <= 700 else release.notes[:700].rsplit(" ", 1)[0] + "…"
+        notes = updater.plain_notes(release.notes)
+        notes = notes if len(notes) <= 900 else notes[:900].rsplit(" ", 1)[0] + "…"
         automatic = bool(release.zip_url) and paths.can_write()
         info = tr("O programa vai baixar a versão nova, fechar e abrir de novo já atualizado. "
                   "Suas configurações e a assinatura salva são mantidas.") if automatic else \

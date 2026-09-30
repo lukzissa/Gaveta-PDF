@@ -44,6 +44,12 @@ def test_parse_release():
     assert updater.parse_release({**data, "assets": []}).zip_url is None
 
 
+def test_plain_notes():
+    raw = ('<img width="250" src="https://x/logo.png" />\r\n![print](https://x/p.png)\r\n\r\n\r\n'
+           "## Novidades da **1.1**\r\n\r\n- Veja o [site](https://x) e `OCR`\r\n")
+    assert updater.plain_notes(raw) == "Novidades da 1.1\n\n- Veja o site e OCR"
+
+
 def _fake_install(root: pathlib.Path) -> pathlib.Path:
     app = root / "GavetaPDF"
     (app / "_internal").mkdir(parents=True)
