@@ -355,7 +355,7 @@ class MainWindow(QMainWindow):
 
     def toggle_theme(self) -> None:
         theme.apply("light" if theme.current == "dark" else "dark")
-        settings().setValue("theme", theme.current)
+        settings().setValue("theme", theme.current)  # a escolha vale nas próximas aberturas
         self._update_theme_button()
 
     # ------------------------------------------------------------ atualização

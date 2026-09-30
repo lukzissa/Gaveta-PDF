@@ -1,8 +1,12 @@
 """Utilidades compartilhadas pelo núcleo de processamento."""
 from __future__ import annotations
 
+import math
 import os
 import re
+import threading
+import time
+from contextlib import contextmanager
 from typing import Callable, Optional
 
 import pymupdf
@@ -40,6 +44,39 @@ class Context:
 
 
 NULL_CONTEXT = Context()
+
+
+@contextmanager
+def ticking(ctx: Context, start: int, span: int, total: int, seconds: float, message: str):
+    """Avança a barra de `start` até perto de `start + span` durante uma etapa longa sem avisos.
+
+    Usado em passos únicos e demorados (ex.: a análise inicial do PDF → Word). O avanço
+    segue o tempo esperado (`seconds`) e desacelera perto do fim, sem ultrapassá-lo.
+    Cancelar durante a etapa é respeitado assim que ela termina.
+    """
+    stop = threading.Event()
+    cancelled: list[bool] = []
+
+    def tick() -> None:
+        began = time.monotonic()
+        while not stop.wait(0.2):
+            share = 1 - math.exp(-(time.monotonic() - began) / max(seconds, 0.5))
+            try:
+                ctx.progress(start + int(span * 0.95 * share), total, message)
+            except Cancelled:
+                cancelled.append(True)
+                return
+
+    thread = threading.Thread(target=tick, daemon=True)
+    ctx.progress(start, total, message)
+    thread.start()
+    try:
+        yield
+    finally:
+        stop.set()
+        thread.join()
+    if cancelled:
+        raise Cancelled()
 
 
 def sub_context(ctx: Context, index: int, count: int, prefix: str = "") -> Context:

@@ -10,7 +10,7 @@ from PySide6.QtGui import QColor, QIcon, QImage, QKeySequence, QPainter, QPixmap
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPushButton, QSlider
 
 from .. import APP_NAME
-from ..core import organize
+from ..core import isolated, organize
 from ..core.common import IMAGE_EXTENSIONS, PdfError, open_pdf, stem, unique_path
 from . import theme
 from .pages import BasePage, Outcome
@@ -282,6 +282,7 @@ class OrganizerPage(BasePage):
         out = save_file_dialog(self, tr("Salvar PDF organizado"), suggested)
         if not out:
             return
-        self.run(lambda ctx: organize.build_from_pages(refs, out, ctx),
+        self.run(lambda ctx: isolated.run(organize.build_from_pages, refs, out, ctx=ctx,
+                                          inputs=sorted({r.path for r in refs})),
                  lambda r: Outcome(tr("PDF salvo com {0} página(s).", len(refs)), [out]),
                  tr("Salvando PDF…"))

@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (
 )
 
 from .. import APP_NAME, i18n
-from ..core import compress, convert, ocr, organize
+from ..core import compress, convert, isolated, ocr, organize
 from ..core.common import (
     IMAGE_EXTENSIONS,
     PdfError,
@@ -145,7 +145,7 @@ class MergePage(BasePage):
             return
         if os.path.abspath(out) in map(os.path.abspath, files):
             raise PdfError(tr("Escolha um nome diferente dos arquivos de origem."))
-        self.run(lambda ctx: organize.merge(files, out, ctx),
+        self.run(lambda ctx: isolated.run(organize.merge, files, out, ctx=ctx, inputs=files),
                  lambda r: Outcome(tr("{0} arquivos unidos em “{1}”.", len(files), os.path.basename(out)), [out]),
                  tr("Juntando arquivos…"))
 
@@ -226,7 +226,7 @@ class SplitPage(BasePage):
                 return
             if os.path.abspath(out) == os.path.abspath(path):
                 raise PdfError(tr("Escolha um nome diferente do arquivo original."))
-            self.run(lambda ctx: organize.extract(path, text, out, ctx),
+            self.run(lambda ctx: isolated.run(organize.extract, path, text, out, ctx=ctx, inputs=[path]),
                      lambda r: Outcome(tr("Páginas extraídas para “{0}”.", os.path.basename(out)), [out]),
                      tr("Extraindo páginas…"))
             return
@@ -238,12 +238,12 @@ class SplitPage(BasePage):
         if not out_dir:
             return
         if self.rb_each.isChecked():
-            fn = lambda ctx: organize.split_every(path, 1, out_dir, ctx)  # noqa: E731
+            fn = lambda ctx: isolated.run(organize.split_every, path, 1, out_dir, ctx=ctx, inputs=[path])  # noqa: E731
         elif self.rb_every.isChecked():
             n = self.spin_every.value()
-            fn = lambda ctx: organize.split_every(path, n, out_dir, ctx)  # noqa: E731
+            fn = lambda ctx: isolated.run(organize.split_every, path, n, out_dir, ctx=ctx, inputs=[path])  # noqa: E731
         else:
-            fn = lambda ctx: organize.split_ranges(path, text, out_dir, ctx)  # noqa: E731
+            fn = lambda ctx: isolated.run(organize.split_ranges, path, text, out_dir, ctx=ctx, inputs=[path])  # noqa: E731
         self.run(fn, lambda r: Outcome(tr("PDF dividido em {0} arquivo(s).", len(r)), r, out_dir), tr("Dividindo…"))
 
 
@@ -293,7 +293,7 @@ class CompressPage(BasePage):
             results = []
             for i, (src, out) in enumerate(jobs):
                 sub = sub_context(ctx, i, len(jobs), os.path.basename(src))
-                results.append(compress.compress(src, out, level, gray, sub))
+                results.append(isolated.run(compress.compress, src, out, level, gray, ctx=sub, inputs=[src]))
             return results
 
         def done(results):
@@ -494,8 +494,8 @@ class ConvertPage(BasePage):
         def fn(ctx):
             out = []
             for i, (src, d) in enumerate(jobs):
-                out += convert.pdf_to_images(src, d, fmt, dpi, pages,
-                                             sub_context(ctx, i, len(jobs), os.path.basename(src)))
+                out += isolated.run(convert.pdf_to_images, src, d, fmt, dpi, pages, inputs=[src],
+                                    ctx=sub_context(ctx, i, len(jobs), os.path.basename(src)))
             return out
 
         folder = jobs[0][1]

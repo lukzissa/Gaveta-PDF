@@ -166,6 +166,14 @@ def write_script(new_dir: str, app_dir: str, pid: int) -> str:
 $new = {_ps(new_dir)}
 $app = {_ps(app_dir)}
 Wait-Process -Id {pid} -Timeout 60
+# processos auxiliares (OCR, operações pesadas) também são o GavetaPDF.exe desta pasta:
+# espera todos terminarem para nenhum arquivo ficar preso; o que sobrar é encerrado
+$prefix = (Join-Path $app '')
+$deadline = (Get-Date).AddSeconds(30)
+while ((Get-Date) -lt $deadline -and (Get-Process | Where-Object {{ $_.Path -and $_.Path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase) }})) {{
+    Start-Sleep -Milliseconds 300
+}}
+Get-Process | Where-Object {{ $_.Path -and $_.Path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase) }} | Stop-Process -Force
 Start-Sleep -Milliseconds 500
 # _internal é espelhada (remove arquivos que não existem mais); o resto é copiado por cima
 robocopy (Join-Path $new '_internal') (Join-Path $app '_internal') /MIR /R:5 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null

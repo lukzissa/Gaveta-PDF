@@ -1,14 +1,21 @@
 """Ponto de entrada do Gaveta PDF.  Uso:  python GavetaPDF.py [arquivos...]"""
-import logging
-import sys
+import multiprocessing
 
-from PySide6.QtCore import QLibraryInfo, Qt, QTranslator
-from PySide6.QtWidgets import QApplication
+if __name__ == "__main__":
+    # O OCR usa processos auxiliares; no .exe eles são o próprio GavetaPDF.exe aberto em
+    # modo especial. Isto os desvia para o trabalho antes de carregar a interface.
+    multiprocessing.freeze_support()
 
-from gavetapdf import APP_NAME, i18n, paths
-from gavetapdf.ui import theme
-from gavetapdf.ui.main_window import MainWindow
-from gavetapdf.ui.widgets import settings
+import logging  # noqa: E402
+import sys  # noqa: E402
+
+from PySide6.QtCore import QLibraryInfo, Qt, QTranslator  # noqa: E402
+from PySide6.QtWidgets import QApplication  # noqa: E402
+
+from gavetapdf import APP_NAME, i18n, paths  # noqa: E402
+from gavetapdf.ui import theme  # noqa: E402
+from gavetapdf.ui.main_window import MainWindow  # noqa: E402
+from gavetapdf.ui.widgets import settings  # noqa: E402
 
 
 def setup_logging() -> None:
@@ -54,7 +61,8 @@ def main() -> int:
     install_qt_translation(app)
     app.setStyle("Fusion")
     # Tema escolhido pelo usuário (claro por padrão), independente do tema do Windows.
-    theme.apply(str(settings().value("theme", "light")))
+    # Na primeira vez segue o tema do Windows; depois, a escolha feita no botão da barra lateral
+    theme.apply(theme.startup_theme(settings().value("theme")))
     app.setWindowIcon(theme.app_icon())
     win = MainWindow()
     win.show()

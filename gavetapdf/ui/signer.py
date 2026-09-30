@@ -37,7 +37,7 @@ from PySide6.QtWidgets import (
 )
 
 from .. import APP_NAME
-from ..core import sign
+from ..core import isolated, sign
 from ..core.common import PdfError, open_pdf, stem, unique_path
 from . import theme
 from .pages import BasePage, Outcome, _two_columns
@@ -875,6 +875,6 @@ class SignPage(BasePage):
         if os.path.abspath(out) == os.path.abspath(path):
             raise PdfError(tr("Escolha um nome diferente do arquivo original."))
         png = self.png
-        self.run(lambda ctx: sign.sign(path, png, placements, out, ctx),
+        self.run(lambda ctx: isolated.run(sign.sign, path, png, placements, out, ctx=ctx, inputs=[path]),
                  lambda r: Outcome(tr("PDF assinado ({0} assinatura(s)) salvo como “{1}”.", len(placements), os.path.basename(out)), [out]),
                  tr("Assinando…"))

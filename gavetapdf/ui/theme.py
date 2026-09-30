@@ -318,6 +318,30 @@ QSpinBox::down-arrow {{ image: url("{files['down']}"); width: 11px; height: 11px
     return _stylesheet(C) + extra
 
 
+def startup_theme(saved) -> str:
+    """Tema ao abrir: a escolha que o usuário salvou pelo botão; sem escolha, o do Windows."""
+    return saved if saved in THEMES else system_theme()
+
+
+def system_theme() -> str:
+    """Tema do Windows ("light" ou "dark"), lido de Configurações → Personalização → Cores."""
+    try:
+        import winreg
+
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                            r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize") as key:
+            light, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
+        return "light" if light else "dark"
+    except (ImportError, OSError):  # outro sistema ou Windows sem essa opção: pergunta ao Qt
+        app = QApplication.instance()
+        try:
+            if app is not None and app.styleHints().colorScheme() == Qt.ColorScheme.Dark:
+                return "dark"
+        except AttributeError:  # Qt < 6.5
+            pass
+        return "light"
+
+
 def apply(name: str) -> None:
     """Troca o tema ("light" ou "dark") de todo o programa, na hora."""
     global current

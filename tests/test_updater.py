@@ -3,6 +3,7 @@ import hashlib
 import os
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -85,9 +86,14 @@ def test_download_prepare_and_apply(monkeypatch):
 
         finished = subprocess.Popen(["cmd", "/c", "exit"])
         finished.wait()  # processo que já terminou: o script não precisa esperar
+        # um "processo auxiliar" que ficou rodando dentro da pasta do programa
+        helper = app / "_internal" / "auxiliar.exe"
+        shutil.copy(os.path.join(os.environ["WINDIR"], "System32", "PING.EXE"), helper)
+        leftover = subprocess.Popen([str(helper), "-n", "600", "127.0.0.1"], stdout=subprocess.DEVNULL)
         script = updater.write_script(new_dir, str(app), finished.pid)
         subprocess.run(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script],
                        check=True, timeout=120)
+        assert leftover.poll() is not None, "o processo que sobrou precisa ser encerrado antes da troca"
 
         assert (app / "GavetaPDF.exe").read_text() == "versao nova"
         assert (app / "_internal" / "novo.dll").exists()

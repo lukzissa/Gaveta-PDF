@@ -135,6 +135,65 @@ def test_ocr():
         assert stats["ocr_pages"] == 1
 
 
+def test_ocr_pdf_to_word_is_real_text():
+    """PDF escaneado + OCR → Word só com texto (antes vinham as fotos das páginas)."""
+    import zipfile
+
+    import docx
+
+    if "por" not in ocr.available_languages():
+        return
+    with tempfile.TemporaryDirectory() as d:
+        src = os.path.join(d, "scan.pdf")
+        make_scanned_pdf(src, "CONTRATO DE SERVIÇOS\n\nO presente contrato estabelece as condições de prestação "
+                              "de serviços entre as partes, pelo prazo de doze meses, conforme proposta anexa.")
+        searchable = os.path.join(d, "scan-ocr.pdf")
+        ocr.ocr_file(src, searchable, ["por"])
+
+        out = os.path.join(d, "scan.docx")
+        convert.pdf_to_word(searchable, out)
+        assert not [n for n in zipfile.ZipFile(out).namelist() if "media/" in n], "não pode ter imagens"
+        text = " ".join(p.text for p in docx.Document(out).paragraphs)
+        assert "CONTRATO" in text and "prestação" in text and "proposta" in text
+
+        # documento misto: uma página digital + a página escaneada
+        mixed = os.path.join(d, "misto.pdf")
+        with pymupdf.open() as m, pymupdf.open(searchable) as s:
+            p = m.new_page()
+            p.insert_text((72, 100), "Página digital de abertura", fontsize=14)
+            m.insert_pdf(s)
+            m.save(mixed)
+        out2 = os.path.join(d, "misto.docx")
+        convert.pdf_to_word(mixed, out2)
+        assert not [n for n in zipfile.ZipFile(out2).namelist() if "media/" in n]
+        text2 = " ".join(p.text for p in docx.Document(out2).paragraphs)
+        assert "digital de abertura" in text2 and "CONTRATO" in text2
+
+
+def test_isolated_process(monkeypatch):
+    """Operações pesadas rodam num processo auxiliar: resultado, progresso e erros voltam iguais."""
+    from gavetapdf.core import isolated
+    from gavetapdf.core.common import Context
+
+    monkeypatch.setattr(isolated, "SMALL", 0)  # força o processo auxiliar mesmo com arquivo pequeno
+    with tempfile.TemporaryDirectory() as d:
+        src = os.path.join(d, "doc.pdf")
+        make_pdf(src, 5)
+        seen = []
+        out = isolated.run(organize.extract, src, "2-4", os.path.join(d, "x.pdf"),
+                           ctx=Context(on_progress=lambda a, b, m: seen.append(a)), inputs=[src])
+        with pymupdf.open(out) as doc:
+            assert doc.page_count == 3
+        assert seen, "os avisos de progresso precisam chegar"
+        try:
+            isolated.run(organize.extract, src, "9-10", os.path.join(d, "y.pdf"), ctx=Context(), inputs=[src])
+        except PdfError as exc:
+            assert "fora do documento" in str(exc)
+        else:
+            raise AssertionError("o erro do processo auxiliar precisa chegar aqui")
+    isolated._kill_pool()
+
+
 def test_sign():
     with tempfile.TemporaryDirectory() as d:
         src = os.path.join(d, "doc.pdf")

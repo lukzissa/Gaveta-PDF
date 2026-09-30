@@ -10,7 +10,7 @@ import warnings
 
 import pymupdf
 
-from .common import NULL_CONTEXT, Context, PdfError, open_pdf, parse_ranges, save_pdf, stem, unique_path
+from .common import NULL_CONTEXT, Context, PdfError, open_pdf, parse_ranges, save_pdf, stem, ticking, unique_path
 from ..i18n import decimal_separator, tr
 
 # Tamanho A4 em pontos (1/72 pol.)
@@ -118,11 +118,43 @@ def _has_text(doc: pymupdf.Document) -> bool:
 
 
 def pdf_to_word(path: str, out: str, ctx: Context = NULL_CONTEXT) -> str:
-    """Converte para .docx mantendo parágrafos, tabelas e imagens (via pdf2docx)."""
+    """Converte para .docx com texto editável.
+
+    PDFs digitais vão pelo pdf2docx (parágrafos, tabelas e imagens). Páginas escaneadas
+    com OCR (foto da página + texto invisível) são remontadas só com o texto reconhecido,
+    senão o Word receberia apenas as fotos.
+    """
+    from . import ocr_docx
+
+    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+    temp = None
     with open_pdf(path) as doc:
         if not _has_text(doc):
             raise PdfError(SCANNED_MESSAGE)
+        scanned = [ocr_docx.is_ocr_page(page) for page in doc]
+        if all(s for s, page in zip(scanned, doc) if page.get_text("text").strip()):
+            try:
+                ocr_docx.ocr_pdf_to_docx(doc, out, ctx)
+            except PermissionError as exc:
+                raise PdfError(tr("Não foi possível salvar “{0}”.\nSe ele estiver aberto no Word, feche e tente de novo.", os.path.basename(out))) from exc
+            ctx.progress(1, 1, tr("Concluído"))
+            return out
+        if any(scanned):
+            # documento misto: as páginas escaneadas viram só texto antes de converter
+            import tempfile
 
+            fd, temp = tempfile.mkstemp(suffix=".pdf", dir=os.path.dirname(os.path.abspath(out)))
+            os.close(fd)
+            ocr_docx.text_only_copy(doc, scanned).save(temp)
+    try:
+        return _pdf2docx(temp or path, out, ctx, os.path.basename(path))
+    finally:
+        if temp:
+            os.remove(temp)
+
+
+def _pdf2docx(path: str, out: str, ctx: Context, name: str) -> str:
+    """Conversão pelo pdf2docx (PDFs com texto digital). `name` é o nome mostrado nos erros."""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         from pdf2docx import Converter
@@ -132,25 +164,29 @@ def pdf_to_word(path: str, out: str, ctx: Context = NULL_CONTEXT) -> str:
     cv = Converter(path)
     try:
         settings = cv.default_settings
-        ctx.progress(0, 1, tr("Analisando o documento…"))
         cv.load_pages()
-        cv.parse_document(**settings)
         pages = list(cv.pages)
-        total = len(pages) + 2
+        # a barra é dividida entre a análise inicial (um passo só, ~0,13 s por página), as
+        # páginas e a criação do .docx (outro passo só, ~0,06 s por página)
+        n = len(pages)
+        docx_part = max(n // 2, 1)
+        total = n * 2 + docx_part
+        with ticking(ctx, 0, n, total, 0.13 * n, tr("Analisando o documento…")):
+            cv.parse_document(**settings)
         for i, page in enumerate(pages):
-            ctx.progress(i + 1, total, tr("Página {0} de {1}", i + 1, len(pages)))
+            ctx.progress(n + i, total, tr("Página {0} de {1}", i + 1, n))
             try:
                 page.parse(**settings)
             except Exception as exc:  # noqa: BLE001 - uma página com problema não impede as outras
                 logging.getLogger("gavetapdf").error("Página %d ignorada na conversão para Word: %s", i + 1, exc)
-        ctx.progress(total - 1, total, tr("Criando o documento Word…"))
         os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
         try:
-            cv.make_docx(out, **settings)
+            with ticking(ctx, n * 2, docx_part, total, 0.06 * n, tr("Criando o documento Word…")):
+                cv.make_docx(out, **settings)
         except PermissionError as exc:
             raise PdfError(tr("Não foi possível salvar “{0}”.\nSe ele estiver aberto no Word, feche e tente de novo.", os.path.basename(out))) from exc
         except Exception as exc:  # noqa: BLE001
-            raise PdfError(tr("Não foi possível converter “{0}” para Word.\n\n{1}", os.path.basename(path), exc)) from exc
+            raise PdfError(tr("Não foi possível converter “{0}” para Word.\n\n{1}", name, exc)) from exc
     finally:
         cv.close()
         logging.disable(logging.NOTSET)
