@@ -1,7 +1,7 @@
 # Gaveta PDF
 
 <img width="250" height="250" alt="logo gaveta pdf" src="https://github.com/user-attachments/assets/65a05fc8-7c30-4de4-b3b5-b4cfaf8bd141" />
-<img width="640" height="410" alt="screen gaveta pdf" src="https://github.com/user-attachments/assets/7b5787b6-0ba9-4fbd-b05b-7e0fde5a3694" />
+<img width="640" height="410" alt="GavetaPDF" src="https://github.com/user-attachments/assets/6b641c58-27b3-4766-b380-211162edfa8c" />
 
 
 Ferramentas de PDF **gratuitas, sem cadastro e 100% offline** para Windows.
