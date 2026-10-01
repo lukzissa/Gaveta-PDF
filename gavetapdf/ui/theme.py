@@ -84,7 +84,7 @@ QDialog, QMessageBox {{ background: {c['bg']}; }}
 #sidebarPanel {{ background: {c['sidebar']}; border-right: 1px solid {c['border']}; }}
 #brandRow {{ background: {c['sidebar']}; }}
 #brand {{ font-size: 15pt; font-weight: 700; background: transparent; }}
-#brandSub {{ color: {c['muted']}; font-size: 9pt; padding: 0 20px 12px 20px; background: {c['sidebar']}; }}
+#brandSub {{ color: {c['muted']}; font-size: 9pt; padding: 2px 16px 12px 16px; background: {c['sidebar']}; }}
 #sidebarFooter {{ background: {c['sidebar']}; }}
 
 #pageTitle {{ font-size: 17pt; font-weight: 700; }}
@@ -176,12 +176,21 @@ _ICONS = {
     "sun": '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
 }
 
-# O ícone do programa não muda com o tema: é a marca.
+# O ícone do programa não muda com o tema: é a marca. Gaveta aberta com uma folha de PDF saindo (vermelho da marca).
 APP_ICON_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<rect x="4" y="4" width="56" height="56" rx="14" fill="#D6423A"/>
-<path d="M22 14h14l10 10v26a2 2 0 0 1-2 2H22a2 2 0 0 1-2-2V16a2 2 0 0 1 2-2z" fill="#FFFFFF"/>
-<path d="M36 14v10h10" fill="#F7D3D0"/>
-<path d="M26 34h12M26 40h12M26 46h7" stroke="#D6423A" stroke-width="3" stroke-linecap="round"/>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E4574E"/><stop offset="1" stop-color="#B8342D"/></linearGradient></defs>
+<rect x="3" y="3" width="58" height="58" rx="14" fill="url(#bg)"/>
+<rect x="9" y="33" width="46" height="12" rx="3" fill="#8E2621"/>
+<g transform="rotate(-8 32 30)">
+  <path d="M19 9h18l8 8v27H19z" fill="#FFFFFF"/>
+  <path d="M37 9v8h8z" fill="#F7D3D0"/>
+  <rect x="22" y="22" width="20" height="9" rx="2" fill="#D6423A"/>
+  <text x="32" y="29.2" font-family="Segoe UI, Arial" font-weight="800" font-size="7.4" fill="#FFFFFF" text-anchor="middle">PDF</text>
+  <path d="M23 35h18M23 38.5h12" stroke="#E7C9C6" stroke-width="1.6" stroke-linecap="round"/>
+</g>
+<rect x="7" y="40" width="50" height="17" rx="4" fill="#FFFFFF"/>
+<rect x="7" y="40" width="50" height="3" rx="1.5" fill="#F1E3E2"/>
+<rect x="25" y="46.5" width="14" height="4.5" rx="2.25" fill="#D6423A"/>
 </svg>"""
 
 

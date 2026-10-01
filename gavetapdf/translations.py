@@ -25,10 +25,10 @@ TRANSLATIONS: dict[str, tuple[str, str, str]] = {
     "Cancelar": ("Cancel", "Cancelar", "Отмена"),
     "Abrir arquivo": ("Open file", "Abrir archivo", "Открыть файл"),
     "Abrir pasta": ("Open folder", "Abrir carpeta", "Открыть папку"),
-    "Ferramentas de PDF grátis\ne 100% offline": (
-        "Free PDF tools,\n100% offline",
-        "Herramientas PDF gratis\ny 100% sin conexión",
-        "Бесплатные инструменты PDF,\n100% офлайн"),
+    "Ferramentas de PDF grátis\ne 100% offline.": (
+        "Free PDF tools,\n100% offline.",
+        "Herramientas PDF gratis\ny 100% sin conexión.",
+        "Бесплатные PDF-инструменты,\n100% офлайн."),
     "Sobre o {0}": ("About {0}", "Acerca de {0}", "О программе {0}"),
     "v{0} · Desenvolvido por {1}": ("v{0} · Developed by {1}", "v{0} · Desarrollado por {1}", "v{0} · Разработчик: {1}"),
     "Versão {0}": ("Version {0}", "Versión {0}", "Версия {0}"),

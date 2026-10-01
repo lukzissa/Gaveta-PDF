@@ -1,7 +1,7 @@
 """Gaveta PDF — ferramentas de PDF gratuitas e 100% offline para Windows."""
 # Versão com 2 números: "1.0", "1.1", "2.0"… (único lugar onde ela é definida;
 # o .exe, o instalador e o .zip de atualização leem daqui)
-__version__ = "1.1"
+__version__ = "1.2"
 APP_NAME = "Gaveta PDF"
 AUTHOR = "Lucas Issa"
 # Repositório "dono/nome" no GitHub de onde vêm as atualizações (vazio = sem atualização automática)
